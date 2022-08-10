@@ -4,8 +4,11 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import useStyles from './styles'
+import {useDispatch} from 'react-redux'
+import { createForm } from "../actions/formAction";
 const Form = () =>{
     const classes = useStyles();
+    const dispatch = useDispatch();
     const [startValue, setStartValue] = React.useState(new Date());
     const [endValue, setEndValue] = React.useState(new Date());
     const [formData, setFormData] = useState({
@@ -13,8 +16,9 @@ const Form = () =>{
         reason: '',
     })
 
-    const handleSubmit = () => {
-
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        dispatch(createForm({...formData,startValue,endValue}))
     }
     return(
         <Paper className={`${classes.paper} ${classes.root}`} elevation={6}>
@@ -32,6 +36,7 @@ const Form = () =>{
                     label="StartTime"
                     value={startValue}
                     ampm={false}
+                    disableFuture={true}
                     onChange={(newStartValue) => {
                     setStartValue(newStartValue);
                     }}
@@ -41,6 +46,7 @@ const Form = () =>{
                     label="EndTime"
                     value={endValue}
                     ampm={false}
+                    disableFuture={true}
                     onChange={(newEndValue) => {
                         setEndValue(newEndValue);
                     }}
