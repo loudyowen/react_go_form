@@ -5,9 +5,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	// "github.com/gin-contrib/cors"
-
+	// "github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/360EntSecGroup-Skylar/excelize"
+	// "github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,12 +38,20 @@ func formPost(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// golang select json data from body
+	// gin json body parser
 	fmt.Println(string(body))
+
 	fmt.Println("+============END==============+")
-	// fmt.Println(c.Request.ParseForm())
-	// for key, val := range c.Request.PostForm {
-	// fmt.Println(key, val)
-	// }
+
+	f := excelize.NewFile()
+	f.SetCellValue("Sheet1", "B2", "TEST")
+	f.SetCellValue("Sheet1", "A1", "123")
+	now := time.Now()
+	f.SetCellValue("Sheet1", "A4", now.Format(time.ANSIC))
+	if err := f.SaveAs("Simple.xlsx"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
