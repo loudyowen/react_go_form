@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
@@ -33,6 +33,8 @@ type FormBody struct {
 	EndValue   string `json:"endValue"`
 }
 
+var sheet = "overtime_data"
+
 func formPost(c *gin.Context) {
 	fmt.Println("+===========START=============+")
 	reqBody := FormBody{}
@@ -49,36 +51,45 @@ func formPost(c *gin.Context) {
 	fmt.Println("+============END==============+")
 
 	// create and write excel
-	f := excelize.NewFile()
-	f.SetCellValue("Sheet1", "A1", "No")
-	f.SetCellValue("Sheet1", "B1", "Nama")
-	f.SetCellValue("Sheet1", "C1", "Alasan")
-	f.SetCellValue("Sheet1", "D1", "Start")
-	f.SetCellValue("Sheet1", "E1", "End")
+	fCreate := excelize.NewFile()
+	// new sheet
+	index := fCreate.NewSheet(sheet)
+	fCreate.SetCellValue(sheet, "A1", "No")
+	fCreate.SetCellValue(sheet, "B1", "Nama")
+	fCreate.SetCellValue(sheet, "C1", "Alasan")
+	fCreate.SetCellValue(sheet, "D1", "Start")
+	fCreate.SetCellValue(sheet, "E1", "End")
+	fCreate.SetActiveSheet(index)
 	// now := time.Now()
 	// f.SetCellValue("Sheet1", "A4", now.Format(time.ANSIC))
-	if err := f.SaveAs("Simple.xlsx"); err != nil {
+	if err := fCreate.SaveAs(sheet + ".xlsx"); err != nil {
 		log.Fatal(err)
 	}
+
+	// // get rows
+	// fOpen, err := excelize.OpenFile(sheet)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// defer func() {
+	// 	if err := fOpen.Close(); err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// }()
+	// rows, err := fOpen.GetCellValue(sheet, "A1")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// fmt.Println(rows)
+
 }
 
 func main() {
 	var r *gin.Engine
 	r = gin.Default()
-	// load everything inside a folder
-	// r.LoadHTMLGlob("views/*")
 
-	// r.Use(cors.New(cors.Config{
-	// 	// AllowMethod: []string{"PUT", "PATCH"}
-	// 	AllowOrigins:     []string{"http://127.0.0.1:5000"},
-	// 	AllowHeaders:     []string{"Origin"},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// 	// AllowOriginFunc: func(origin string) bool{
-	// 	// 	return origin == "http://github.com"
-	// 	// },
-	// 	MaxAge: 12 * time.Hour,
-	// }))
 	r.Use(CORSMiddleware())
 	r.GET("/form", func(ctx *gin.Context) {
 		ctx.JSON(
@@ -89,5 +100,27 @@ func main() {
 		)
 	})
 	r.POST("/form", formPost)
+	r.GET("/getExc", func(ctx *gin.Context) {
+		// get rows
+		fOpen, err := excelize.OpenFile(sheet + ".xlsx")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		// defer func() {
+		// 	if err := fOpen.Close(); err != nil {
+		// 		fmt.Println(err)
+		// 	}
+		// }()
+		rows, err := fOpen.GetCellValue(sheet, "A1")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("================")
+		fmt.Println(rows)
+		fmt.Println("================")
+
+	})
 	r.Run(":5000")
 }
