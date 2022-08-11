@@ -2,15 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 
-	// "github.com/gin-contrib/cors"
-	// "github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/360EntSecGroup-Skylar/excelize"
-	// "github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,24 +26,37 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
+type FormBody struct {
+	Nama       string `json:"nama"`
+	Reason     string `json:"reason"`
+	StartValue string `json:"startValue"`
+	EndValue   string `json:"endValue"`
+}
+
 func formPost(c *gin.Context) {
 	fmt.Println("+===========START=============+")
-
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		log.Fatal(err)
+	reqBody := FormBody{}
+	if err := c.BindJSON(&reqBody); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
-	// golang select json data from body
-	// gin json body parser
-	fmt.Println(string(body))
+	fmt.Println("Nama: ", reqBody.Nama)
+	fmt.Println("Reason: ", reqBody.Reason)
+	fmt.Println("Start : ", reqBody.StartValue)
+	fmt.Println("End : ", reqBody.EndValue)
+	c.JSON(http.StatusAccepted, &reqBody)
 
 	fmt.Println("+============END==============+")
 
+	// create and write excel
 	f := excelize.NewFile()
-	f.SetCellValue("Sheet1", "B2", "TEST")
-	f.SetCellValue("Sheet1", "A1", "123")
-	now := time.Now()
-	f.SetCellValue("Sheet1", "A4", now.Format(time.ANSIC))
+	f.SetCellValue("Sheet1", "A1", "No")
+	f.SetCellValue("Sheet1", "B1", "Nama")
+	f.SetCellValue("Sheet1", "C1", "Alasan")
+	f.SetCellValue("Sheet1", "D1", "Start")
+	f.SetCellValue("Sheet1", "E1", "End")
+	// now := time.Now()
+	// f.SetCellValue("Sheet1", "A4", now.Format(time.ANSIC))
 	if err := f.SaveAs("Simple.xlsx"); err != nil {
 		log.Fatal(err)
 	}
