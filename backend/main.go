@@ -9,28 +9,11 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
-
 type FormBody struct {
-	Nama       string `json:"nama"`
-	Reason     string `json:"reason"`
-	StartValue string `json:"startValue"`
-	EndValue   string `json:"endValue"`
+	Nama      string `json:"nama"`
+	Reason    string `json:"reason"`
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
 }
 
 var excelFile = "overtime_data.xlsx"
@@ -42,6 +25,15 @@ func formPost(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	startDate := reqBody.StartDate
+
+	fmt.Println(string(startDate))
+	// for _, val := range startDate {
+	// 	fmt.Println(string(val))
+	// }
+	// year := startDate[0:4]
+	// month := startDate[6:8]
+	// day := startDate[8:10]
 	c.JSON(http.StatusAccepted, &reqBody)
 
 	// Insert New Data
@@ -91,8 +83,9 @@ func formPost(c *gin.Context) {
 	fOpen.SetCellValue(sheet, rowA, lastRow)
 	fOpen.SetCellValue(sheet, rowB, reqBody.Nama)
 	fOpen.SetCellValue(sheet, rowC, reqBody.Reason)
-	fOpen.SetCellValue(sheet, rowD, reqBody.StartValue)
-	fOpen.SetCellValue(sheet, rowE, reqBody.EndValue)
+
+	fOpen.SetCellValue(sheet, rowD, reqBody.StartDate)
+	fOpen.SetCellValue(sheet, rowE, reqBody.EndDate)
 
 	if err := fOpen.Save(); err != nil {
 		log.Fatal(err)
@@ -103,9 +96,21 @@ func formPost(c *gin.Context) {
 
 }
 
-func getExc(c *gin.Context) {
-	// get rows
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
 
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func main() {
@@ -113,7 +118,7 @@ func main() {
 	r = gin.Default()
 
 	r.Use(CORSMiddleware())
-	r.GET("/abc", func(ctx *gin.Context) {
+	r.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(
 			http.StatusOK,
 			gin.H{
@@ -122,7 +127,6 @@ func main() {
 		)
 	})
 	r.POST("/form", formPost)
-	r.GET("/getExc", getExc)
 
 	// })
 	r.Run(":5000")

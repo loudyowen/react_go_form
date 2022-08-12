@@ -9,12 +9,7 @@ function App() {
     <Routes>
       <Route path="/" exact element={<Form />} />
     </Routes>
-    
     </BrowserRouter>
-    // <div className="App">
-     
-    //   <Form />
-    // </div>
   );
 }
 
