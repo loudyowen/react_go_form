@@ -33,56 +33,78 @@ type FormBody struct {
 	EndValue   string `json:"endValue"`
 }
 
-var sheet = "overtime_data"
+var excelFile = "overtime_data.xlsx"
+var sheet = "Sheet1"
 
 func formPost(c *gin.Context) {
-	fmt.Println("+===========START=============+")
 	reqBody := FormBody{}
 	if err := c.BindJSON(&reqBody); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	fmt.Println("Nama: ", reqBody.Nama)
-	fmt.Println("Reason: ", reqBody.Reason)
-	fmt.Println("Start : ", reqBody.StartValue)
-	fmt.Println("End : ", reqBody.EndValue)
 	c.JSON(http.StatusAccepted, &reqBody)
 
-	fmt.Println("+============END==============+")
+	// Insert New Data
+	fOpen, err := excelize.OpenFile(excelFile)
+	defer func() {
+		if err := fOpen.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	if err != nil {
+		// if file not exist create and write excel
+		fCreate := excelize.NewFile()
+		defer func() {
+			if err := fCreate.Close(); err != nil {
+				fmt.Println(err)
+			}
+		}()
+		fCreate.SetCellValue(sheet, "A1", "No")
+		fCreate.SetCellValue(sheet, "B1", "Nama")
+		fCreate.SetCellValue(sheet, "C1", "Alasan")
+		fCreate.SetCellValue(sheet, "D1", "Start")
+		fCreate.SetCellValue(sheet, "E1", "End")
 
-	// create and write excel
-	fCreate := excelize.NewFile()
-	// new sheet
-	index := fCreate.NewSheet(sheet)
-	fCreate.SetCellValue(sheet, "A1", "No")
-	fCreate.SetCellValue(sheet, "B1", "Nama")
-	fCreate.SetCellValue(sheet, "C1", "Alasan")
-	fCreate.SetCellValue(sheet, "D1", "Start")
-	fCreate.SetCellValue(sheet, "E1", "End")
-	fCreate.SetActiveSheet(index)
-	// now := time.Now()
-	// f.SetCellValue("Sheet1", "A4", now.Format(time.ANSIC))
-	if err := fCreate.SaveAs(sheet + ".xlsx"); err != nil {
-		log.Fatal(err)
+		if err := fCreate.SaveAs(excelFile); err != nil {
+			log.Fatal(err)
+		}
+		fCreate.Close()
 	}
 
-	// // get rows
-	// fOpen, err := excelize.OpenFile(sheet)
-	// if err != nil {
+	// get all rows
+	rows, err := fOpen.GetRows(sheet)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// get last row
+	var lastRow int
+	for i := 0; i <= len(rows); i++ {
+		lastRow++
+	}
+	fOpen.SetActiveSheet(1)
+	rowA := fmt.Sprintf("A%d", lastRow)
+	rowB := fmt.Sprintf("B%d", lastRow)
+	rowC := fmt.Sprintf("C%d", lastRow)
+	rowD := fmt.Sprintf("D%d", lastRow)
+	rowE := fmt.Sprintf("E%d", lastRow)
+	fOpen.SetCellValue(sheet, rowA, lastRow)
+	fOpen.SetCellValue(sheet, rowB, reqBody.Nama)
+	fOpen.SetCellValue(sheet, rowC, reqBody.Reason)
+	fOpen.SetCellValue(sheet, rowD, reqBody.StartValue)
+	fOpen.SetCellValue(sheet, rowE, reqBody.EndValue)
+
+	if err := fOpen.Save(); err != nil {
+		log.Fatal(err)
+	}
+	// if err := fOpen.Close(); err != nil {
 	// 	fmt.Println(err)
-	// 	return
 	// }
-	// defer func() {
-	// 	if err := fOpen.Close(); err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// }()
-	// rows, err := fOpen.GetCellValue(sheet, "A1")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println(rows)
+
+}
+
+func getExc(c *gin.Context) {
+	// get rows
 
 }
 
@@ -91,7 +113,7 @@ func main() {
 	r = gin.Default()
 
 	r.Use(CORSMiddleware())
-	r.GET("/form", func(ctx *gin.Context) {
+	r.GET("/abc", func(ctx *gin.Context) {
 		ctx.JSON(
 			http.StatusOK,
 			gin.H{
@@ -100,27 +122,8 @@ func main() {
 		)
 	})
 	r.POST("/form", formPost)
-	r.GET("/getExc", func(ctx *gin.Context) {
-		// get rows
-		fOpen, err := excelize.OpenFile(sheet + ".xlsx")
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		// defer func() {
-		// 	if err := fOpen.Close(); err != nil {
-		// 		fmt.Println(err)
-		// 	}
-		// }()
-		rows, err := fOpen.GetCellValue(sheet, "A1")
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println("================")
-		fmt.Println(rows)
-		fmt.Println("================")
+	r.GET("/getExc", getExc)
 
-	})
+	// })
 	r.Run(":5000")
 }

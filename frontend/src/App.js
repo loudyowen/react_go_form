@@ -1,13 +1,20 @@
 import React from "react";
 import './App.css';
 import Form from './form/Form';
+import {BrowserRouter, Routes, Route} from "react-router-dom"
 
 function App() {
   return (
-    <div className="App">
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" exact element={<Form />} />
+    </Routes>
+    
+    </BrowserRouter>
+    // <div className="App">
      
-      <Form />
-    </div>
+    //   <Form />
+    // </div>
   );
 }
 
