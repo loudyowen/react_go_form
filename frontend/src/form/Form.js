@@ -27,19 +27,31 @@ const Form = () =>{
         endDate: ''
     })
 
+    const clear = () =>{
+        setFormData({
+            nama: '',
+            reason: '',
+            startDate: new Date(),
+            endDate: new Date()
+        })
+    }
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
         formData.startDate = startDateFormat
         formData.endDate = endDateFormat
         dispatch(createForm({...formData}))
+        clear();
     }
+
 
     const startDateFormat = dayjs(startDate).format("YYYY-MM-DD HH:mm")
     const endDateFormat = dayjs(endDate).format("YYYY-MM-DD HH:mm")
     return(
         <Container>
             <Paper className={`${classes.paper} ${classes.root}`} elevation={6} >
-                <h1>
+                <h1 style={{textAlign:'center'}} >
                     Form Overtime Request
                 </h1>
                 <form className={classes.form} autoComplete="off" noValidate onSubmit={handleSubmit}>
@@ -54,7 +66,7 @@ const Form = () =>{
                             value={startDate}
                             ampm={false}
                             disableFuture={true}
-                            inputFormat="E dd MM yyyy hh:mm"
+                            inputFormat="dd/MM/yyyy HH:mm"
                             onChange={(newStartDate) => {
                                 setStartDate(newStartDate);
                             }}
@@ -66,7 +78,7 @@ const Form = () =>{
                             value={endDate}
                             ampm={false}
                             disableFuture={true}
-                            inputFormat="E dd MM yyyy hh:mm"
+                            inputFormat="dd/MM/yyyy HH:mm"
                             onChange={(newEndDate) => {
                                 setEndDate(newEndDate);
                             }}

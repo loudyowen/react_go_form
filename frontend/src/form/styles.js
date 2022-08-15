@@ -11,6 +11,8 @@ export default makeStyles((theme)=>({
         width: '50%',
         height: '70%',
         margin: 'auto',
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: theme.spacing(2),
     },
     form: {
